@@ -1,0 +1,41 @@
+<apex:page controller="REntryDetailsController" title="Balance Details">
+    <apex:includeScript value="{!URLFOR($Resource.jQuery, '/js/jquery-1.9.1.js')}"  />
+    <apex:includeScript value="{!URLFOR($Resource.jQuery, '/js/jquery-ui-1.10.3.custom.min.js')}"  />
+    <apex:stylesheet value="{!URLFOR($Resource.jQuery, '/css/redmond/jquery-ui-1.10.3.custom.min.css')}" />        
+    <apex:includeScript value="/soap/ajax/30.0/connection.js"/> 
+    <apex:includeScript value="/support/console/30.0/integration.js"/>  
+    
+    <apex:sectionHeader title="{!entryCode}" subtitle="{!transactionName}"/>
+    <apex:pageBlock >
+        <table class="detailList" cellspacing="0" cellpadding="0" border="0">
+            <tbody>
+                <tr>
+                    <td class="labelCol"> Transaction Code: </td>
+                    <td class="dataCol">{!entryCode}</td> 
+                    <td class="labelCol"> Transaction: </td>
+                    <td class="dataCol">{!transactionName}</td>                      
+                </tr>
+                <tr>
+                    <td class="labelCol"> Value Date:</td>
+                    <td class="dataCol">{!valueDate}</td>
+                    <td class="labelCol"> Text: </td>
+                    <td class="dataCol">{!text}</td>                         
+                </tr>  
+                <tr>
+                    <td class="labelCol">Created By:</td>
+                    <td class="dataCol">{!createdBy}</td>  
+                </tr>
+            </tbody>
+        </table>
+    </apex:pageBlock>
+    
+    <apex:pageBlock title="Accounting Entry Details" >
+        <apex:pageBlockTable value="{!entryDetails}" var="ordinal">
+            <apex:column headervalue="Ordinal">{!ordinal.ordinal}</apex:column>
+            <apex:column headervalue="Concept">{!ordinal.accName}</apex:column>
+            <apex:column headervalue="Member">{!ordinal.member}</apex:column>
+            <apex:column headervalue="Debt">{!ordinal.debt}</apex:column>
+            <apex:column headervalue="Credit">{!ordinal.credit}</apex:column>
+        </apex:pageBlockTable>
+    </apex:pageBlock>    
+</apex:page>

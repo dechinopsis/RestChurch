@@ -1,0 +1,45 @@
+<apex:page controller="RBalanceController" title="Online Balance">
+    <apex:includeScript value="{!URLFOR($Resource.jQuery, '/js/jquery-1.9.1.js')}"  />
+    <apex:includeScript value="{!URLFOR($Resource.jQuery, '/js/jquery-ui-1.10.3.custom.min.js')}"  />
+    <apex:stylesheet value="{!URLFOR($Resource.jQuery, '/css/redmond/jquery-ui-1.10.3.custom.min.css')}" />        
+    <apex:includeScript value="/soap/ajax/30.0/connection.js"/> 
+    <apex:includeScript value="/support/console/30.0/integration.js"/>        
+    <script type="application/javascript">
+    console = console ? console : {"log" : function(){}};    
+    $j = jQuery.noConflict();
+    $j(document).ready(function() {
+    });
+    </script>        
+    <script type="text/javascript">
+    function openPrimaryTabIfPossible(tabUrl , tabName){
+        if (sforce && sforce.console && sforce.console.isInConsole()) {
+            sforce.console.openPrimaryTab(null, tabUrl, true, 
+                                          tabName, openSuccess, tabName );
+            return false;
+        }
+        return true;
+    }
+    var openSuccess = function openSuccess(result) {
+        if (result.success == true) {
+            console.log('Primary tab successfully opened');
+        } else {
+            console.log('Primary tab cannot be opened');
+        }
+    };
+    </script>       
+    <!--Balance-->
+    <apex:sectionHeader title="Online" subtitle="Balance"/>
+    <apex:pageBlock title="Balance Details" mode="maindetail">        
+        <apex:pageBlockTable value="{!balanceDetails}" var="balance">            
+            <apex:column headervalue="Accountable Code" width="30%">
+                <a href="{!JSENCODE(balance.url)}" onClick='return openPrimaryTabIfPossible("{!JSENCODE(balance.url)}" , "{!JSENCODE(balance.accountableName)}");' target="_top">
+                    {!balance.accountableCode}
+                </a>
+            </apex:column>
+            <apex:column headervalue="Accountable Name" width="50%">{!balance.accountableName}</apex:column>
+            <apex:column headervalue="Balance" width="20%">{!balance.balance}</apex:column>
+        </apex:pageBlockTable>
+    </apex:pageBlock>
+    <br/>
+    Sum of balances: {!sumBalance}
+</apex:page>

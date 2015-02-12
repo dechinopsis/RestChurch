@@ -1,0 +1,44 @@
+<apex:page controller="REntriesController" title="Counted Entries">
+    <apex:includeScript value="{!URLFOR($Resource.jQuery, '/js/jquery-1.9.1.js')}"  />
+    <apex:includeScript value="{!URLFOR($Resource.jQuery, '/js/jquery-ui-1.10.3.custom.min.js')}"  />
+    <apex:stylesheet value="{!URLFOR($Resource.jQuery, '/css/redmond/jquery-ui-1.10.3.custom.min.css')}" />        
+    <apex:includeScript value="/soap/ajax/30.0/connection.js"/> 
+    <apex:includeScript value="/support/console/30.0/integration.js"/>        
+    <script type="application/javascript">
+    console = console ? console : {"log" : function(){}};    
+    $j = jQuery.noConflict();
+    $j(document).ready(function() {
+    });
+    </script>        
+    <script type="text/javascript">
+    function openPrimaryTabIfPossible(tabUrl , tabName){
+        if (sforce && sforce.console && sforce.console.isInConsole()) {
+            sforce.console.openPrimaryTab(null, tabUrl, true, 
+                                          tabName, openSuccess, tabName );
+            return false;
+        }
+        return true;
+    }
+    var openSuccess = function openSuccess(result) {
+        if (result.success == true) {
+            console.log('Primary tab successfully opened');
+        } else {
+            console.log('Primary tab cannot be opened');
+        }
+    };
+    </script>       
+    <!--Balance-->
+    <apex:sectionHeader title="Accounting Module" subtitle="Posted Entries"/>
+    <apex:pageBlock title="" mode="maindetail">        
+        <apex:pageBlockTable value="{!entries}" var="entry">
+            <apex:column headervalue="Entry Code">
+                <a href="{!JSENCODE(entry.url)}" onClick='return openPrimaryTabIfPossible("{!JSENCODE(entry.url)}" , "{!JSENCODE(entry.entryCode)}");' target="_top">
+                    {!entry.entryCode}
+                </a>
+            </apex:column>
+            <apex:column headervalue="Value Date">{!entry.valueDate}</apex:column>
+            <apex:column headervalue="Transaction">{!entry.transactionName}</apex:column>
+            <apex:column headervalue="Created by">{!entry.createdBy}</apex:column>
+        </apex:pageBlockTable>
+    </apex:pageBlock>
+</apex:page>

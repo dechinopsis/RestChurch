@@ -1,0 +1,81 @@
+<apex:page controller="RBalanceDetailsController" title="Balance Details">
+    <apex:includeScript value="{!URLFOR($Resource.jQuery, '/js/jquery-1.9.1.js')}"  />
+    <apex:includeScript value="{!URLFOR($Resource.jQuery, '/js/jquery-ui-1.10.3.custom.min.js')}"  />
+    <apex:stylesheet value="{!URLFOR($Resource.jQuery, '/css/redmond/jquery-ui-1.10.3.custom.min.css')}" />        
+    <apex:includeScript value="/soap/ajax/30.0/connection.js"/> 
+    <apex:includeScript value="/support/console/30.0/integration.js"/>        
+    <script type="application/javascript">
+    console = console ? console : {"log" : function(){}};    
+    $j = jQuery.noConflict();
+    $j(document).ready(function() {
+    });
+    </script>        
+    <script type="text/javascript">
+    function openPrimaryTabIfPossible(tabUrl , tabName){
+        if (sforce && sforce.console && sforce.console.isInConsole()) {
+            sforce.console.openPrimaryTab(null, tabUrl, true, 
+                                          tabName, openSuccess, tabName );
+            return false;
+        }
+        return true;
+    }
+    var openSuccess = function openSuccess(result) {
+        if (result.success == true) {
+            console.log('Primary tab successfully opened');
+        } else {
+            console.log('Primary tab cannot be opened');
+        }
+    };
+    </script>
+    <apex:outputPanel rendered="{!AND(analyzeByMember,sentMember)}">
+        <apex:sectionHeader title="Balance Details" subtitle="{!balanceDescription} - {!MemberName}"/>
+    </apex:outputPanel>
+    <apex:outputPanel rendered="{!Or(NOT(analyzeByMember),AND(analyzeByMember,NOT(sentMember)))}">        
+        <apex:sectionHeader title="Balance Details" subtitle="{!balanceDescription}"/>
+    </apex:outputPanel>       
+    <apex:pageBlock title="Balance Details" mode="maindetail">
+        <table class="detailList" cellspacing="0" cellpadding="0" border="0">
+            <tbody>
+                <tr>
+                    <td class="labelCol"> Accountable Code: </td>
+                    <td class="dataCol">{!accountableCode}</td>
+                    <td class="labelCol"> Accountable Name:</td>
+                    <td class="dataCol">{!balanceDescription}</td>
+                </tr>
+                <tr>
+                    <td class="labelCol"> Online Balance: </td>
+                    <td class="dataCol">{!balanceAmmout}</td>
+                    <apex:outputPanel rendered="{!AND(analyzeByMember,sentMember)}">                        
+                        <td class="labelCol"> Member:</td>
+                        <td class="dataCol">{!MemberName}</td>
+                    </apex:outputPanel>
+                </tr>   
+            </tbody>
+        </table>
+    </apex:pageBlock>
+    <apex:pageBlock title="Members Detail" mode="maindetail" rendered="{!AND(analyzeByMember,NOT(sentMember))}">        
+        <apex:pageBlockTable value="{!memberDetails}" var="member">
+            <apex:column headervalue="Member Code">
+                <a href="{!JSENCODE(member.url)}" onClick='return openPrimaryTabIfPossible("{!JSENCODE(member.url)}" , "{!JSENCODE(member.name)}");' target="_top">
+                    {!member.memberCode}
+                </a>                
+            </apex:column>
+            <apex:column headervalue="Name">{!member.name}</apex:column>
+            <apex:column headervalue="Balance">{!member.balance}</apex:column>
+        </apex:pageBlockTable>
+    </apex:pageBlock>  
+    <apex:pageBlock title="Accountable Code Statement" mode="maindetail" rendered="{!OR(AND(NOT(analyzeByMember)),AND(analyzeByMember,sentMember))}">        
+        <apex:pageBlockTable value="{!balanceDetails}" var="movement">            
+            <apex:column headervalue="Entry Code">
+                <a href="{!JSENCODE(movement.url)}" onClick='return openPrimaryTabIfPossible("{!JSENCODE(movement.url)}" , "{!JSENCODE(movement.entryCode)}");' target="_top">
+                    {!movement.entryCode}
+                </a>
+            </apex:column>            
+            <apex:column headervalue="Value Date">{!movement.valueDate}</apex:column>
+            <apex:column headervalue="Concept">{!movement.concept}</apex:column>
+            <apex:column headervalue="Debt">{!movement.debt}</apex:column>
+            <apex:column headervalue="Credit">{!movement.credit}</apex:column>
+            <apex:column headervalue="Balance">{!movement.balance}</apex:column>
+        </apex:pageBlockTable>
+    </apex:pageBlock>    
+</apex:page>

@@ -1,0 +1,336 @@
+<apex:page controller="RAccountingEntryController">
+    <apex:includeScript value="{!URLFOR($Resource.jQuery, '/js/jquery-1.9.1.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.jQuery, '/js/jquery-ui-1.10.3.custom.min.js')}" />    
+    <apex:stylesheet value="{!URLFOR($Resource.jQuery, '/css/redmond/jquery-ui-1.10.3.custom.min.css')}" />
+    <apex:includeScript value="{!URLFOR($Resource.datetimepicker, '/jquery.datetimepicker.js')}"  />
+    <apex:stylesheet value="{!URLFOR($Resource.datetimepicker, '/jquery.datetimepicker.css')}" />   
+    <style>
+        ul.sortable {
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+        margin-bottom: 10px;
+        cursor: pointer;
+        }
+        
+        ul.sortable > li {
+        margin: 5px;
+        padding: 5px;
+        width: 650px;
+        border: 1px solid #D4DADC;
+        border-radius: 4px;
+        background-color: #F1F1F1;
+        }
+        
+        ul.sortable>li>ul>li {
+        width: 420px;
+        background-color: #FAFAFA;
+        }
+        
+        ul.sortable li>span.closeable {
+        cursor: pointer;
+        float: right;
+        height: 12px;
+        padding: 3px;
+        text-align: center;
+        width: 12px;
+        cursor: default;
+        }
+        .undrag{
+        color: gray;
+        }
+        .pageMessageContainer {
+        display: none;
+        }
+    </style>
+    <apex:sectionHeader title="New Entry" subtitle="Accounting Entry"/>   
+    <apex:form >
+        <p>
+            In this section, you may enter New Accounting Entry, be sure that each ordinal
+            and all entry conforms the Accounting rules established.
+        </p> 
+        <div class='pageMessageContainer'>
+            <apex:pageMessage strength="1" severity="error"
+                              id="zUpErrorMessage" />
+        </div>
+        <div class='pageMessageContainer'>
+            <apex:pageMessage strength="1" severity="info"
+                              id="zUpCorrectMessage" />
+        </div>
+        <apex:pageBlock mode="maindetail">                                                
+            <table id='contentFrm' style='display: none;'>
+                <tr>
+                    <td>                        
+                        <label>Transaction:</label>                    
+                    </td>
+                    <td>                    
+                        <select id='selectTransactions'/>    
+                    </td>
+                    <td>                        
+                        <label>Value Date:</label>                    
+                    </td>
+                    <td>                    
+                        <input type ="text" id="valueDate"/>   
+                    </td>
+                </tr>
+                <tr>
+                    <td>                        
+                        <label>Entry Text:</label>                    
+                    </td>
+                    <td>                    
+                        <textarea rows="4" cols="50" id="entryText"/>   
+                    </td>
+                </tr>
+            </table>
+            <div align='center'>
+                <button onclick="addOrdinal();return false;">
+                    Add Ordinal
+                </button>   
+            </div>
+        </apex:pageBlock>
+        <apex:pageBlock mode="maindetail" title="Entry Body">
+            <ul class="sortable ui-sortable" id="ordinalsList"/> 
+            <div align='center'>                                
+                <button onclick="save();return false;" id="buttonSave">Save And Count</button>
+                <button onclick="history.back();return false;">
+                    Cancel
+                </button> 
+            </div>            
+        </apex:pageBlock>
+        <div class='pageMessageContainer'>
+            <apex:pageMessage strength="1" severity="error"
+                              id="zDwErrorMessage" />
+        </div>
+        <div class='pageMessageContainer'>
+            <apex:pageMessage strength="1" severity="info"
+                              id="zDwCorrectMessage" />
+        </div>
+    </apex:form>
+    <script>
+    var ficticialOrdinal=0;
+    var colMembers;
+    var colAccountableCodes;
+    $j = jQuery.noConflict();    
+    $j(function() {        
+        $j("span[id$=zUpCorrectMessage]").show("fast", function(){});
+        $j("span[id$=zUpCorrectMessage] DIV.messageText").html("Loading Please Wait...");
+        
+        $j("span[id$=zDwCorrectMessage]").hide("fast", function(){});
+        $j("span[id$=zUpErrorMessage]").hide("fast", function(){});
+        $j("span[id$=zDwErrorMessage]").hide("fast", function(){});
+        
+        $j("#buttonSave").attr("disabled", "");
+        $j("#buttonSave").attr("class", "btnDisabled");
+        
+        $j("div.pageMessageContainer").each(function(i){
+            $j(this).removeAttr("class");
+        });
+        
+        $j("#valueDate").datetimepicker({format: "m/d/Y", 
+                                         closeOnDateSelect: true,
+                                         autoOpen: false});
+        
+        Visualforce.remoting.Manager.invokeAction(
+            '{!$RemoteAction.RAccountingEntryController.start}',
+            function(result, event) {
+                $j("span[id$=zUpCorrectMessage]").hide("fast", function(){});                
+                if (event.status) {
+                    colMembers = result.lstMembers;
+                    colAccountableCodes = result.lstAccountableCodes;
+                    $j("#buttonSave").removeAttr("disabled");
+                    $j("#buttonSave").removeAttr("class");
+                    $j("#contentFrm").removeAttr("style");
+                    for(var i = 0;i<result.lstTransaction.length;i++){
+                        $j('#selectTransactions').append("<option value='"+
+                                                         result.lstTransaction[i].Id+"'>"+
+                                                         result.lstTransaction[i].Description__c+
+                                                         "</option>");
+                        $j("#valueDate").val(result.valueDate);
+                    }
+                }
+                else{
+                    $j("span[id$=zUpErrorMessage]").show("fast", function(){});
+                    $j("span[id$=zUpErrorMessage] DIV.messageText").html("Fatal Error, contact your administrator");
+                }               
+            }
+        );                
+    });
+    function removeOrdinal(ordinalToRemove){
+        var elementToRemove = '#ord_'+ordinalToRemove;
+        $j(elementToRemove).hide("fast", function(){$j(elementToRemove).remove();});
+    }
+    function getMember(accCodeId){
+        var member = false;
+        for(var i = 0;i<colAccountableCodes.length;i++){
+            if(colAccountableCodes[i].Id==accCodeId){
+                member = colAccountableCodes[i].Member__c;
+                break;
+            }
+        }
+        return member;
+    }
+    function changeAccCode(ordinalToBuild){
+        var accCodeId = $j('#selectAc_'+ordinalToBuild).val();
+        var member = getMember(accCodeId);
+        if(!member){
+            $j('#selectMm_'+ordinalToBuild).attr("disabled", "");
+            $j('#selectMm_'+ordinalToBuild).val("");
+        }
+        else{
+            $j('#selectMm_'+ordinalToBuild).removeAttr("disabled");
+        }
+    }
+    function buildSelectAccountableCode(ordinalToBuild){
+        var html = "<select id='selectAc_"+ordinalToBuild+
+            "' onChange='changeAccCode("+ordinalToBuild+");'>";
+        for(var i = 0;i<colAccountableCodes.length;i++){
+            html+="<option value='"+
+                colAccountableCodes[i].Id+"'>"+
+                colAccountableCodes[i].Description__c+
+                "</option>";
+        }
+        html+="</select>";
+        return html
+    }
+    function buildCoin(ordinalToBuild){
+        var html = "<select id='selectCoin_"+ordinalToBuild+"' disabled>";
+        html+="<option value='Local'>Local</option>";
+        html+="<option value='Dollar'>Dollar</option>";
+        html+="</select>";
+        return html
+    }
+    function buildSelectMember(ordinalToBuild){
+        var html = "<select id='selectMm_"+ordinalToBuild+"'>";
+        html+="<option value=''>(Empty)</option>";
+        for(var i = 0;i<colMembers.length;i++){
+            html+="<option value='"+
+                colMembers[i].Id+"'>"+
+                colMembers[i].MemberName__c+
+                "</option>";
+        }
+        html+="</select>";
+        return html
+    }
+    function plot(ordinalToPlot){
+        var plotted=ordinalToPlot+'';
+        if(ordinalToPlot<10){
+            plotted='0'+plotted;
+        }
+        return plotted;
+    }
+    function addOrdinal(){    
+        ficticialOrdinal++;        
+        $j("#ordinalsList").append("<li class='ui-sortable-handle' id='ord_"+ficticialOrdinal+"'><table><tr>"+
+                                   "<td>("+plot(ficticialOrdinal)+")</td>"+
+                                   "<td>"+buildSelectAccountableCode(ficticialOrdinal)+"</td>"+
+                                   "<td>"+buildSelectMember(ficticialOrdinal)+" </td>"+
+                                   "<td style='display:none'>"+buildCoin(ficticialOrdinal)+"</td>"+
+                                   "<td><input value='0.00' style='width: 70px' type ='text' id='debt_"+ficticialOrdinal+"'/>"+
+                                   "&nbsp;<input value='0.00' style='width: 70px' type ='text' id='credit_"+ficticialOrdinal+"'/></td>"+
+                                   "<td style='display:none'>&nbsp;&nbsp;&nbsp; Ord.Text: <input style='width: 250px' type ='text' id='text_"+ficticialOrdinal+"'/></td>"+
+                                   "<span class='closeable' title='Remove this ordinal' onclick=\"removeOrdinal('"+ficticialOrdinal+"');\"><img src='/img/dismiss.gif'/></span>"+
+                                   "</tr></table></li>");
+        //perform first action
+        changeAccCode(ficticialOrdinal)
+    }
+    function save(){
+        $j("span[id$=zDwCorrectMessage]").hide("fast", function(){});
+        $j("span[id$=zUpErrorMessage]").hide("fast", function(){});
+        $j("span[id$=zDwErrorMessage]").hide("fast", function(){});
+        var userSelectedOrdinals = new Array();
+        var lis = document.getElementById("ordinalsList").getElementsByTagName("li");
+        var sumDebt = 0;
+        var sumCredit = 0;
+        if(lis.length==0){
+            $j("span[id$=zDwErrorMessage]").show("fast", function(){});
+            $j("span[id$=zDwErrorMessage] DIV.messageText").html('Accounting entry does not contain ordinals');
+            return;            
+        }
+        for(var i = 0; i < lis.length; i++){
+            var ordId = lis[i].id;
+            var ordNumber = Number(ordId.substr(4));
+            var selAccCod = $j('#selectAc_'+ordNumber).val();
+            var needMember = getMember(selAccCod);
+            var selMember = $j('#selectMm_'+ordNumber).val();
+            if(needMember && selMember ==''){                
+                $j("span[id$=zDwErrorMessage]").show("fast", function(){});
+                $j("span[id$=zDwErrorMessage] DIV.messageText").html('Accountable Code needs member and no action was indicated, ordinal: '+ordNumber);
+                return;
+            }
+            var strDebt =$j('#debt_'+ordNumber).val();
+            var strCredit =$j('#credit_'+ordNumber).val();
+            var numDebt =0;
+            var numCredit =0;
+            if(isNaN(strDebt)||isNaN(strCredit)){                
+                $j("span[id$=zDwErrorMessage]").show("fast", function(){});
+                $j("span[id$=zDwErrorMessage] DIV.messageText").html('Ordinal wrong ammount, ordinal: '+ordNumber);
+                return;
+            }
+            else{
+                numDebt = strDebt==''?0:Math.round(Number(strDebt) * 100) / 100 ;
+                numCredit = strCredit==''?0:Math.round(Number(strCredit) * 100) / 100;                
+                if(numDebt==0 && numCredit==0){                    
+                    $j("span[id$=zDwErrorMessage]").show("fast", function(){});
+                    $j("span[id$=zDwErrorMessage] DIV.messageText").html('Ordinal must especified ammount, ordinal: '+ordNumber);
+                    return;
+                }
+                if(numDebt!=0 && numCredit!=0){                    
+                    $j("span[id$=zDwErrorMessage]").show("fast", function(){});
+                    $j("span[id$=zDwErrorMessage] DIV.messageText").html('Ordinal must especified only one ammount for debt/credit concept, ordinal: '+ordNumber);
+                    return;
+                }
+            }
+            
+            sumDebt+=numDebt;
+            sumCredit+=numCredit;
+            
+            var jsonOrdinal= new Object(); 
+            jsonOrdinal.ordinal=ordNumber;
+            jsonOrdinal.accCode=selAccCod;
+            jsonOrdinal.member=selMember;
+            jsonOrdinal.coin= $j('#selectCoin_'+ordNumber).val();
+            jsonOrdinal.debt=numDebt!=0;
+            jsonOrdinal.ammount=numDebt+numCredit;
+            jsonOrdinal.text=$j('#text_'+ordNumber).val();
+            
+            userSelectedOrdinals.push(jsonOrdinal);
+            
+        }
+        
+        sumDebt = Math.round(Number(sumDebt) * 100) / 100 ;
+        sumCredit = Math.round(Number(sumCredit) * 100) / 100;
+        if(sumDebt!=sumCredit){
+            $j("span[id$=zDwErrorMessage]").show("fast", function(){});
+            $j("span[id$=zDwErrorMessage] DIV.messageText").html('The Accounting entry does not close for...debt:'+sumDebt+', credit:'+sumCredit);
+            return;
+        }
+        var userSelectedEntry = {};
+        userSelectedEntry['ordinals']=userSelectedOrdinals;
+        userSelectedEntry['valueDate']=$j("#valueDate").val();
+        userSelectedEntry['transaction']=$j("#selectTransactions").val();
+        userSelectedEntry['entryText']=$j("#entryText").val();
+        
+        var userSelectedEntryJSON = JSON.stringify(userSelectedEntry);
+        
+        $j("span[id$=zDwCorrectMessage]").show("fast", function(){});
+        $j("span[id$=zDwCorrectMessage] DIV.messageText").html("Saving...");
+        Visualforce.remoting.Manager.invokeAction(
+            '{!$RemoteAction.RAccountingEntryController.save}',
+            userSelectedEntryJSON,
+            function(result, event) {
+                if (event.status) {
+                    $j("span[id$=zDwCorrectMessage] DIV.messageText").html("Saved and Counted successfully.");
+                    $j("#buttonSave").attr("disabled", "");
+                    $j("#buttonSave").attr("class", "btnDisabled");
+                }
+                else{
+                    $j("span[id$=zDwCorrectMessage]").hide("fast", function(){});
+                    $j("span[id$=zDwErrorMessage] DIV.messageText").html("Problems during saving, contact your administrator");
+                    $j("span[id$=zDwErrorMessage]").show("fast", function(){});   
+                }
+            },
+            {escape: false}
+        );
+    }
+    </script>
+</apex:page>

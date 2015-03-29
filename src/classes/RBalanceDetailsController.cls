@@ -6,6 +6,7 @@ public class RBalanceDetailsController {
     private String member =null;
     private String memberName =null;
     private Decimal balanceAmmout;
+    private Decimal sumBalances;
     public RBalanceDetailsController(){
         String accCode = ApexPages.currentPage().getParameters().get('accCode');
         this.member = ApexPages.currentPage().getParameters().get('member');              
@@ -76,8 +77,11 @@ public class RBalanceDetailsController {
         }
         return balanceDetailsRet;
     } 
-    
+    public Decimal getSumBalances(){
+        return this.sumBalances;
+    }
     public List<MemberDetail> getmemberDetails(){
+        this.sumBalances = 0;
         List<MemberDetail> memberDetailsRet = new List<MemberDetail>();
         List<Balance__c> balance = [SELECT Balance__c,Member__r.MemberName__c,Member__r.Name FROM Balance__c
          WHERE Member__c!=null and Accountable_Code__r.name=:this.accountableCode];
@@ -87,6 +91,7 @@ public class RBalanceDetailsController {
             actualMember.name =bal.Member__r.MemberName__c;
             actualMember.balance =bal.Balance__c;
             actualMember.accountableCode =this.accountableCode;
+            this.sumBalances += bal.Balance__c;
             memberDetailsRet.add(actualMember);
         }
         return memberDetailsRet;

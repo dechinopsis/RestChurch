@@ -62,7 +62,8 @@
             </apex:column>
             <apex:column headervalue="Name">{!member.name}</apex:column>
             <apex:column headervalue="Balance">{!member.balance}</apex:column>
-        </apex:pageBlockTable>
+        </apex:pageBlockTable><br/>
+        Sum of Balances: {!sumBalances}
     </apex:pageBlock>  
     <apex:pageBlock title="Accountable Code Statement" mode="maindetail" rendered="{!OR(AND(NOT(analyzeByMember)),AND(analyzeByMember,sentMember))}">        
         <apex:pageBlockTable value="{!balanceDetails}" var="movement">            

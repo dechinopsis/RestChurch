@@ -4,22 +4,27 @@ public class REntryDetailsController {
     private String text;
     private String entryCode;
     private String createdBy;
+    public REntryDetailsController(Boolean external){
+    }
     public REntryDetailsController(){
         this.entryCode = ApexPages.currentPage().getParameters().get('entryCode');
+        fillHeader(entryCode);        
+    }
+    public void fillHeader(String entryC){
         Accounting_Entry__c entry = [SELECT Entry_Text__c,Transaction__r.Description__c,Value_Date__c,
                                      CreatedBy.Name FROM Accounting_Entry__c
-                                     WHERE Name =:this.entryCode];
+                                     WHERE Name =:entryC];
         this.transactionName=entry.Transaction__r.Description__c;
         this.valueDate=entry.Value_Date__c.format();
         this.text=entry.Entry_Text__c;
         this.createdBy = entry.CreatedBy.Name;
     }
-    public List<Ordinal>getEntryDetails(){
+    public List<Ordinal> externalDetails(String entryC){
         List<Ordinal>retOrdinals=new List<Ordinal>();        
         List<Accounting_Entry_Details__c> ordinals=[SELECT Accountable_Code__r.Description__c,Amount__c,
                                                     Debt__c,Member__r.MemberName__c,Ordinal__c 
                                                     FROM Accounting_Entry_Details__c WHERE
-                                                    Accounting_Entry_Parent__r.Name=:this.entryCode
+                                                    Accounting_Entry_Parent__r.Name=:entryC
                                                     ORDER BY Ordinal__c];
         for(Accounting_Entry_Details__c ordinal:ordinals){
             Ordinal aux = new Ordinal();
@@ -42,6 +47,9 @@ public class REntryDetailsController {
             retOrdinals.add(aux);
         }
         return retOrdinals;
+    }
+    public List<Ordinal>getEntryDetails(){
+        return externalDetails(this.entryCode);
     }
     public class Ordinal{
         public Decimal ordinal {get; set;}

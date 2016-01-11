@@ -20,6 +20,44 @@ global class RAccountingEntryController {
         Map<String,Object> userSelectedEntry =(Map<String,Object>)JSON.deserializeUntyped(userSelectedEntryJSON);
         Accounting_Entry__c entry = saveEntry(userSelectedEntry);
         countEntry(entry);
+        
+        List<Contact> contacts = [SELECT Email FROM Contact WHERE Notify_Transaction__c=true];
+        if(contacts.size()!=0){
+            String[]toAddresses= new String[contacts.size()];
+            Integer i = 0;
+            for(Contact contact:contacts){
+                toAddresses[i]=contact.Email;
+                i++;
+            }
+            Accounting_Entry__c entryAux =[SELECT Name FROM Accounting_Entry__c WHERE Id =:entry.Id];
+            
+            REntryDetailsController redc = new REntryDetailsController(true);
+            redc.fillHeader(entryAux.Name);
+            String subject = 'New entry posted! '+ redc.getTransactionName();
+            List<REntryDetailsController.Ordinal> ordinals=redc.externalDetails(entryAux.Name);
+            String body='';
+            
+            body+=entryAux.Name+' '+redc.getTransactionName()+'\n\n';
+            body+='Value Date: ' +redc.getValueDate() +'\t';
+            body+='Created By: ' +redc.getCreatedBy() +'\n';
+            body+='Text: ' +(redc.getText()==null?'':redc.getText())+'\n\n';
+            
+            body+='\tConcept\t\t\tMember\t\t\tDebt\t\tCredit\n';
+            for(REntryDetailsController.Ordinal ord:ordinals){
+                body+=ord.ordinal+'\t'+ord.accName+'\t\t\t'+ord.member+'\t\t\t'+
+                    ord.debt+'\t\t'+ord.credit+'\n';
+            }
+            
+            try{
+                Messaging.SingleEmailMessage mail = new Messaging.SingleEmailMessage();        
+                mail.setToAddresses(toAddresses);        
+                mail.setSubject(subject);
+                mail.setPlainTextBody(body);
+                Messaging.sendEmail(new Messaging.SingleEmailMessage[] { mail });
+            }catch(Exception e){
+                System.debug('Error during sending mail, limit exceeded: '+e.getMessage());
+            }
+        }
         return;
     }
     public static void countEntry(Accounting_Entry__c entry){
@@ -43,8 +81,8 @@ global class RAccountingEntryController {
             else{
                 Balance__c existingBalance = lstBalance.get(0);
                 existingBalance.Balance__c=ordinal.Debt__c?(existingBalance.Balance__c-ordinal.Amount__c):(existingBalance.Balance__c+ordinal.Amount__c);
-                update existingBalance;
-			}
+                    update existingBalance;
+            }
         }
         entry.State__c = 'Posted';
         update entry;

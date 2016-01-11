@@ -1,0 +1,127 @@
+<apex:page controller="RBalanceDetailsController" title="Balance Details"
+           showHeader="false" sidebar="false" standardStylesheets="false" docType="html-5.0">
+    <apex:includeScript value="{!URLFOR($Resource.jQuery, '/js/jquery-1.9.1.js')}"  />
+    <apex:includeScript value="{!URLFOR($Resource.jQuery, '/js/jquery-ui-1.10.3.custom.min.js')}"  />
+    <apex:stylesheet value="{!URLFOR($Resource.jQuery, '/css/redmond/jquery-ui-1.10.3.custom.min.css')}" />        
+    <apex:includeScript value="/soap/ajax/30.0/connection.js"/> 
+    <apex:includeScript value="/support/console/30.0/integration.js"/>   
+    
+    <apex:stylesheet value="{!URLFOR($Resource.Ratchet, '/ratchet-v2.0.2/css/ratchet.min.css')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.Ratchet, '/ratchet-v2.0.2/css/ratchet-theme-ios.min.css')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.Ratchet, '/ratchet-v2.0.2/js/ratchet.min.js')}"  />
+    <style>
+        table { 
+        	width: 100%; 
+        	border-collapse: collapse; 
+            font-size: 70%;
+        }        
+        tr:nth-of-type(odd) { 
+        	background: #eee; 
+        }
+        tr:active {
+        	background-color: gray;
+        }
+        th { 
+        	background: #333; 
+        	color: white; 
+        }
+        td, th { 
+        	padding: 6px; 
+        	border: 1px solid #ccc; 
+        	text-align: left; 
+        }
+    </style>
+    <script type="application/javascript">
+    console = console ? console : {"log" : function(){}};    
+    $j = jQuery.noConflict();
+    $j(document).ready(function() {
+    });
+    </script>        
+    <script type="text/javascript">
+    </script>
+    <body>
+        <header class="bar bar-nav">
+            <h1 class="title">Balance Details</h1>
+        </header>    
+        <div class="content">
+            <form class="input-group" style="margin-top: 15px;">
+                <div class="input-row">
+                    <label>Code</label>
+                    <input type="text" value="{!accountableCode}" disabled="true"/>
+                </div>
+                <div class="input-row">
+                    <label>Name</label>
+                    <input type="text" value="{!balanceDescription}" disabled="true"/>
+                </div>                
+                <div class="input-row">
+                    <label>Balance</label>
+                    <input type="text" value="{!balanceAmmout}" disabled="true"/>
+                </div>
+                <apex:outputPanel rendered="{!AND(analyzeByMember,sentMember)}">                      
+                    <div class="input-row">
+                        <label>Member</label>
+                        <input type="text" value="{!MemberName}" disabled="true"/>
+                    </div>
+                </apex:outputPanel>
+            </form>
+            <br/>            
+            <apex:outputPanel rendered="{!AND(analyzeByMember,NOT(sentMember))}">
+                <h5>Inventory Details</h5>
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="display:none">Code</th>
+                            <th>Name</th>
+                            <th>Balance</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <apex:repeat value="{!memberDetails}" var="member">
+                            <tr style="height: 50px;" onClick='sforce.one.navigateToURL("{!JSENCODE(member.url)}"); return false;'>
+                                <td style="display:none">{!member.memberCode}</td>
+                                <td>{!member.name}</td>
+                                <td>{!member.balance}</td>
+                            </tr>
+                        </apex:repeat>
+                    </tbody>
+                </table>
+                <br/>
+                <div style="font-size:70%;">                                    
+                    <b>Sum of Balances: </b>{!sumBalances}
+                </div>
+            </apex:outputPanel>
+            
+            <apex:outputPanel rendered="{!OR(AND(NOT(analyzeByMember)),AND(analyzeByMember,sentMember))}">
+                <h5>Accountable Code Statement</h5>
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="display:none">Entry</th>
+                            <th>Date</th>
+                            <th>Conc</th>
+                            <th>Db</th>
+                            <th>Cr</th>
+                            <th>Bal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <apex:repeat value="{!balanceDetails}" var="movement">
+                            <tr style="height: 50px;">
+                                <td style="display:none">
+                                    <a href="{!JSENCODE(movement.url)}" onClick='return openPrimaryTabIfPossible("{!JSENCODE(movement.url)}" , "{!JSENCODE(movement.entryCode)}");' target="_top">
+                                        {!movement.entryCode}
+                                    </a>
+                                </td>          
+                                <td>{!movement.valueDate}</td>
+                                <td>{!movement.concept}</td>
+                                <td>{!movement.debt}</td>
+                                <td>{!movement.credit}</td>
+                                <td>{!movement.balance}</td>
+                            </tr>
+                        </apex:repeat>
+                    </tbody>
+                </table>
+            </apex:outputPanel>
+        </div>
+    </body>
+</apex:page>

@@ -25,6 +25,9 @@ public class RBalanceController {
         public String accountableName {get; set;}
         public Decimal balance {get; set;}
         public String getUrl(){
+            if(RRequest.deviceDetection()){
+                return URL.getSalesforceBaseUrl().toExternalForm() + '/apex/RBalanceDetailsM?accCode=' + accountableCode;            
+            }
             return URL.getSalesforceBaseUrl().toExternalForm() + '/apex/RBalanceDetails?accCode=' + accountableCode;            
         }
     }

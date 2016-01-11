@@ -56,12 +56,19 @@ public class RBalanceDetailsController {
                        Accounting_Entry_Parent__r.State__c='Posted'
                        ORDER BY Accounting_Entry_Parent__r.Name];
         }
+        Boolean device = RRequest.deviceDetection();
+            
         for(Accounting_Entry_Details__c ordinal:ordinals){            
             MovementDetail currMove = new MovementDetail();
             currMove.entryCode = ordinal.Accounting_Entry_Parent__r.Name;            
             Date tmp= ordinal.Accounting_Entry_Parent__r.Value_Date__c;
             currMove.valueDate = tmp.format();
             currMove.concept = ordinal.Accounting_Entry_Parent__r.Transaction__r.Description__c;
+            if(device){
+                if(currMove.concept.length()>12){
+                    currMove.concept = currMove.concept.substring(0,12)+'...';
+                }
+            }
             if(ordinal.Debt__c){
                 currMove.debt = String.valueOf(ordinal.Amount__c);
                 currMove.credit = '';
@@ -103,6 +110,10 @@ public class RBalanceDetailsController {
         public String name {get; set;}
         public Decimal balance {get; set;}
         public String getUrl(){
+            if(RRequest.deviceDetection()){
+                return URL.getSalesforceBaseUrl().toExternalForm() + '/apex/RBalanceDetailsM?accCode=' + 
+                    accountableCode+'&member='+memberCode;
+            }
             return URL.getSalesforceBaseUrl().toExternalForm() + '/apex/RBalanceDetails?accCode=' + 
                 accountableCode+'&member='+memberCode;
         }

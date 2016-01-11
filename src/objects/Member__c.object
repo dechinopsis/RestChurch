@@ -111,6 +111,11 @@
     </fields>
     <label>Member</label>
     <listViews>
+        <fullName>All</fullName>
+        <filterScope>Everything</filterScope>
+        <label>All</label>
+    </listViews>
+    <listViews>
         <fullName>Members</fullName>
         <columns>NAME</columns>
         <columns>MemberName__c</columns>

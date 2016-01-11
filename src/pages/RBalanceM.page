@@ -1,0 +1,55 @@
+<apex:page controller="RBalanceController" title="Online Balance" showHeader="false" sidebar="false"
+           standardStylesheets="false" docType="html-5.0">
+    <apex:includeScript value="{!URLFOR($Resource.jQuery, '/js/jquery-1.9.1.js')}"  />
+    <apex:includeScript value="{!URLFOR($Resource.jQuery, '/js/jquery-ui-1.10.3.custom.min.js')}"  />
+    <apex:stylesheet value="{!URLFOR($Resource.jQuery, '/css/redmond/jquery-ui-1.10.3.custom.min.css')}" />        
+    <apex:includeScript value="/soap/ajax/30.0/connection.js"/> 
+    <apex:includeScript value="/support/console/30.0/integration.js"/>
+    
+    <apex:stylesheet value="{!URLFOR($Resource.Ratchet, '/ratchet-v2.0.2/css/ratchet.min.css')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.Ratchet, '/ratchet-v2.0.2/css/ratchet-theme-ios.min.css')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.Ratchet, '/ratchet-v2.0.2/js/ratchet.min.js')}"  />
+    
+    <style>
+        .updated-text {
+        position: absolute;
+        left: 0;
+        right: 0;
+        padding: 10px 0;
+        font-size: 11px;
+        text-align: center;
+        }
+    </style>
+    <script type="application/javascript">  
+    $j = jQuery.noConflict();
+    $j(document).ready(function() {
+    });
+    </script>        
+    <script type="text/javascript">
+    </script>       
+    <body>
+        <header class="bar bar-nav">
+            <h1 class="title">Balances</h1>
+        </header>
+        
+        <div class="bar bar-footer">
+            <small class="updated-text">Sum of balances: {!sumBalance}</small>
+        </div>
+        
+        <div class="content">         
+            <ul class="table-view">                
+                <apex:repeat value="{!balanceDetails}" var="balance">
+                    <li class="table-view-cell media">
+                        <a class="navigate-right" href="#" data-transition="slide-in"
+                           onclick="sforce.one.navigateToURL('{!JSENCODE(balance.url)}'); return false;">                        
+                            <div class="media-body">
+                                {!balance.accountableName}
+                            </div>
+                            <p>{!balance.balance}</p>
+                        </a>                        
+                    </li>
+                </apex:repeat>                
+            </ul>                        
+        </div>
+    </body>
+</apex:page>

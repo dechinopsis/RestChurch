@@ -57,18 +57,14 @@ public class RBalanceDetailsController {
                        ORDER BY Accounting_Entry_Parent__r.Name];
         }
         Boolean device = RRequest.deviceDetection();
-            
+        
         for(Accounting_Entry_Details__c ordinal:ordinals){            
             MovementDetail currMove = new MovementDetail();
             currMove.entryCode = ordinal.Accounting_Entry_Parent__r.Name;            
             Date tmp= ordinal.Accounting_Entry_Parent__r.Value_Date__c;
             currMove.valueDate = tmp.format();
             currMove.concept = ordinal.Accounting_Entry_Parent__r.Transaction__r.Description__c;
-            if(device){
-                if(currMove.concept.length()>12){
-                    currMove.concept = currMove.concept.substring(0,12)+'...';
-                }
-            }
+       
             if(ordinal.Debt__c){
                 currMove.debt = String.valueOf(ordinal.Amount__c);
                 currMove.credit = '';
@@ -91,7 +87,7 @@ public class RBalanceDetailsController {
         this.sumBalances = 0;
         List<MemberDetail> memberDetailsRet = new List<MemberDetail>();
         List<Balance__c> balance = [SELECT Balance__c,Member__r.MemberName__c,Member__r.Name FROM Balance__c
-         WHERE Member__c!=null and Accountable_Code__r.name=:this.accountableCode];
+                                    WHERE Member__c!=null and Accountable_Code__r.name=:this.accountableCode];
         for(Balance__c bal:balance){
             MemberDetail actualMember = new MemberDetail();
             actualMember.memberCode = bal.Member__r.Name;
@@ -126,6 +122,10 @@ public class RBalanceDetailsController {
         public String credit {get; set;}
         public Decimal balance {get; set;}
         public String getUrl(){
+            if(RRequest.deviceDetection()){
+                return URL.getSalesforceBaseUrl().toExternalForm() + '/apex/REntryDetailsM?entryCode=' + 
+                    entryCode;
+            }
             return URL.getSalesforceBaseUrl().toExternalForm() + '/apex/REntryDetails?entryCode=' + 
                 entryCode;
         }

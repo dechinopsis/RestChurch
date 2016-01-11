@@ -40,8 +40,13 @@
     <script type="text/javascript">
     </script>
     <body>
-        <header class="bar bar-nav">
-            <h1 class="title">Balance Details</h1>
+        <header class="bar bar-nav">                        
+            <apex:outputPanel rendered="{!AND(analyzeByMember,sentMember)}">
+                <h1 class="title">Balance/Inventory Details</h1>
+            </apex:outputPanel>
+            <apex:outputPanel rendered="{!Or(NOT(analyzeByMember),AND(analyzeByMember,NOT(sentMember)))}">        
+                <h1 class="title">Balance Details</h1>
+            </apex:outputPanel>                 
         </header>    
         <div class="content">
             <form class="input-group" style="margin-top: 15px;">
@@ -106,9 +111,9 @@
                     </thead>
                     <tbody>
                         <apex:repeat value="{!balanceDetails}" var="movement">
-                            <tr style="height: 50px;">
+                            <tr style="height: 50px;" onClick='sforce.one.navigateToURL("{!JSENCODE(movement.url)}");return false;'>
                                 <td style="display:none">
-                                    <a href="{!JSENCODE(movement.url)}" onClick='return openPrimaryTabIfPossible("{!JSENCODE(movement.url)}" , "{!JSENCODE(movement.entryCode)}");' target="_top">
+                                    <a href="#">
                                         {!movement.entryCode}
                                     </a>
                                 </td>          

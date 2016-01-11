@@ -20,6 +20,10 @@ public class REntriesController {
         public String entryCode{get; set;}
         public String createdBy{get; set;}
         public String getUrl(){
+            if(RRequest.deviceDetection()){
+                return URL.getSalesforceBaseUrl().toExternalForm() + '/apex/REntryDetailsM?entryCode=' + 
+                    entryCode;
+            }
             return URL.getSalesforceBaseUrl().toExternalForm() + '/apex/REntryDetails?entryCode=' + 
                 entryCode;
         }

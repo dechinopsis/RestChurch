@@ -37,22 +37,24 @@ global class RAccountingEntryController {
             List<REntryDetailsController.Ordinal> ordinals=redc.externalDetails(entryAux.Name);
             String body='';
             
-            body+=entryAux.Name+' '+redc.getTransactionName()+'\n\n';
-            body+='Value Date: ' +redc.getValueDate() +'\t';
-            body+='Created By: ' +redc.getCreatedBy() +'\n';
-            body+='Text: ' +(redc.getText()==null?'':redc.getText())+'\n\n';
+            body+=entryAux.Name+' '+redc.getTransactionName()+'<br/>';
+            body+='Value Date: ' +redc.getValueDate() +'<br/>';
+            body+='Created By: ' +redc.getCreatedBy() +'<br/>';
+            body+='Text: ' +(redc.getText()==null?'':redc.getText())+'<br/><br/>';
             
-            body+='\tConcept\t\t\tMember\t\t\tDebt\t\tCredit\n';
+            body+='<table><tr><td></td><td><b>Concept</b></td><td><b>Member</b></td>'+
+                '<td><b>Debt</b></td><td><b>Credit</b></td></tr>';
             for(REntryDetailsController.Ordinal ord:ordinals){
-                body+=ord.ordinal+'\t'+ord.accName+'\t\t\t'+ord.member+'\t\t\t'+
-                    ord.debt+'\t\t'+ord.credit+'\n';
+                body+='<tr><td>'+ord.ordinal+'</td><td>'+ord.accName+'</td><td>'+ord.member+'</td><td>'+
+                    ord.debt+'</td><td>'+ord.credit+'</td></tr>';
             }
-            
+            body+='</table>';
             try{
                 Messaging.SingleEmailMessage mail = new Messaging.SingleEmailMessage();        
                 mail.setToAddresses(toAddresses);        
                 mail.setSubject(subject);
-                mail.setPlainTextBody(body);
+                mail.setHtmlBody(body);
+                
                 Messaging.sendEmail(new Messaging.SingleEmailMessage[] { mail });
             }catch(Exception e){
                 System.debug('Error during sending mail, limit exceeded: '+e.getMessage());

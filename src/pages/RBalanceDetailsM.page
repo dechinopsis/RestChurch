@@ -40,7 +40,10 @@
     <script type="text/javascript">
     </script>
     <body>
-        <header class="bar bar-nav">                        
+        <header class="bar bar-nav">
+            <button class="btn btn-link btn-nav pull-left" onclick="sforce.one.back(true);return;false">
+                <span class="icon icon-left-nav"></span>
+            </button>
             <apex:outputPanel rendered="{!AND(analyzeByMember,sentMember)}">
                 <h1 class="title">Balance/Inventory Details</h1>
             </apex:outputPanel>

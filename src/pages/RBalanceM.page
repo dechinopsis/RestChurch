@@ -29,6 +29,9 @@
     </script>       
     <body>
         <header class="bar bar-nav">
+            <button class="btn btn-link btn-nav pull-left" onclick="sforce.one.back(true);return;false">
+                <span class="icon icon-left-nav"></span>
+            </button>
             <h1 class="title">Balances</h1>
         </header>
         
